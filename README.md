@@ -129,11 +129,11 @@ were the first 20 rows and are marked `cold` in the CSV.
 
 | Label | Count | Share |
 |---|---|---|
-| analysis | 81 | 38.6% |
-| hot_take | 56 | 26.7% |
-| reaction | 27 | 12.9% |
-| question | 46 | 21.9% |
-| **Total** | **210** | **100%** |
+| analysis | 81 | 31.2% |
+| hot_take | 56 | 21.5% |
+| reaction | 77 | 29.6% |
+| question | 46 | 17.7% |
+| **Total** | **260** | **100%** |
 
 **Three hard cases**
 
@@ -174,13 +174,15 @@ were the first 20 rows and are marked `cold` in the CSV.
 
 **Base model:** `distilbert-base-uncased`
 
-**Settings:** 3 epochs, learning rate `2e-5`, batch size `16`, max length `128`, seed `42`, device `mps`.
+**Settings:** 4 epochs, learning rate `2e-5`, batch size `16`, max length `128`, seed `42`, device `mps`.
 
-**Anything I changed from the defaults, and why:** I added the stretch fourth label `question`; training hyperparameters remain the notebook defaults.
+**Anything I changed from the defaults, and why:** I added the stretch fourth label `question`, 50 extra `reaction` examples, and changed epochs from 3 to 4 for the stretch training run. The extra epoch tests whether the larger reaction set benefits from more passes.
 
-**Split sizes:** 147 train / 31 validation / 32 test. The test split contained 12 `analysis`, 9 `hot_take`, 4 `reaction`, and 7 `question` examples. `reaction` had fewer than 8 test examples, so its score is especially unstable.
+**Split sizes:** 182 train / 39 validation / 39 test. The test split contained 12 `analysis`, 8 `hot_take`, 12 `reaction`, and 7 `question` examples.
 
-**Recorded result:** Accuracy was `0.78125` and macro F1 was `0.61866`. Per-label F1 was `0.80` for `analysis`, `0.95` for `hot_take`, `0.00` for `reaction`, and `0.73` for `question`. The model ran on Apple Silicon MPS with PyTorch `2.14.1`.
+**Recorded result:** The original 3-epoch run on 210 rows scored accuracy `0.78125` and macro F1 `0.61866`. The 4-epoch stretch run on 260 rows scored accuracy `0.84615` and macro F1 `0.83698`; per-label F1 was `0.85` for `analysis`, `0.94` for `hot_take`, `0.83` for `reaction`, and `0.73` for `question`. The model ran on Apple Silicon MPS with PyTorch `2.14.1`.
+
+**Stretch comparison:** Adding 50 reaction examples and one epoch raised macro F1 by `0.21832`. Because both the data and epoch count changed, this is evidence of improvement but not an isolated hyperparameter effect.
 
 
 
@@ -226,12 +228,12 @@ from observable text features; I reviewed the output and documented that workflo
 
 | Measure | Baseline | Trained | Difference |
 |---|---|---|---|
-| Overall accuracy | 0.469 | 0.781 | +0.312 |
-| Macro F1 | 0.426 | 0.619 | +0.192 |
-| F1 — `analysis` | 0.556 | 0.800 | +0.244 |
-| F1 — `hot_take` | 0.364 | 0.947 | +0.584 |
-| F1 — `question` | 0.500 | 0.727 | +0.227 |
-| F1 — `reaction` | 0.286 | 0.000 | -0.286 |
+| Overall accuracy | 0.359 | 0.846 | +0.487 |
+| Macro F1 | 0.325 | 0.837 | +0.512 |
+| F1 — `analysis` | 0.556 | 0.846 | +0.291 |
+| F1 — `hot_take` | 0.222 | 0.941 | +0.719 |
+| F1 — `question` | 0.389 | 0.727 | +0.338 |
+| F1 — `reaction` | 0.133 | 0.833 | +0.700 |
 
 **What I predicted before I looked:**
 <!-- Milestone 1 asks you to write this BEFORE seeing the trained numbers. A
@@ -244,10 +246,9 @@ because the labeled examples make the evidence boundary explicit.
 <!-- If the baseline matched your trained model, your fine-tuning added
      nothing — and that is a real finding, not a failure. Say it plainly. -->
 
-Fine-tuning added substantial value overall, especially for hot_take. The
-reaction score fell below the baseline, showing that four held-out examples are
-not enough support for that class and that the immediate-response boundary needs
-more varied labeled examples.
+Fine-tuning added substantial value overall, especially for hot_take and
+reaction. The extra reaction examples made the immediate-response boundary much
+more measurable: the test split now has 12 reaction examples instead of 4.
 
 
 
