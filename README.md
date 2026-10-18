@@ -39,10 +39,10 @@
 
 ## What This Does
 
-<!-- Your community, and what your classifier sorts posts into. Three or four
-     sentences. -->
-
-
+TakeMeter classifies public posts from the Reddit running community, r/running.
+It sorts each post into analysis, hot_take, reaction, or question. The labels
+separate evidence-backed arguments from unsupported opinions, immediate personal
+responses, and posts asking the community for help or information.
 
 ---
 
@@ -54,33 +54,54 @@
      The decision rule is worth a point on its own and it's the thing most
      people leave out. Every taxonomy has a hardest boundary. Name yours. -->
 
-### `label_one`
+### `analysis`
 
-**Definition:**
-
-**Example 1:**
->
-
-**Example 2:**
->
-
-### `label_two`
-
-**Definition:**
+**Definition:** Makes an argument backed by a specific, checkable fact.
 
 **Example 1:**
->
+> Carbon plates gave me about 2% on paper and roughly nothing in races.
 
 **Example 2:**
->
+> The entry fee went from 45 to 72 over four years. Field size went from 3,200 to 3,400.
+
+### `hot_take`
+
+**Definition:** Makes a confident claim with no support offered.
+
+**Example 1:**
+> Super shoes have ruined amateur racing. Times mean nothing now.
+
+**Example 2:**
+> The 5k is the only honest distance.
+
+### `reaction`
+
+**Definition:** Gives an immediate response to something that just happened, centered on the writer's experience.
+
+**Example 1:**
+> Just got back from the long run and I cannot feel my hands.
+
+**Example 2:**
+> First time under 20 for the 5k and I nearly cried at the finish line.
+
+### `question`
+
+**Definition:** Asks the community for advice, information, or a recommendation.
+
+**Example 1:**
+> Is it worth doing a Major Marathon?
+
+**Example 2:**
+> What, if anything, makes the Majors better than other races?
 
 ### The hardest boundary
 
-**Which two labels:**
+**Which two labels:** `analysis` and `question`
 
 **The decision rule I used every time:**
-<!-- e.g. "If the post names a specific checkable fact, it's `analysis`, even
-     if the tone is heated." -->
+If a post asks for advice but also makes an evidence-backed claim, label it
+`analysis`; use `question` only when the main purpose is seeking an answer and
+the post does not use a checkable fact to support an argument.
 
 
 
@@ -93,17 +114,26 @@
 
 **Where the posts came from:**
 
-**How I labelled them:** <!-- Cold first? Pre-labelled with AI and corrected?
-Say so plainly — the disclosure is required, not penalised. -->
+Public RSS feeds from r/running, collected from the community front page and
+topic searches on October 18, 2026. Repeated thread bodies were removed.
+
+**How I labelled them:**
+
+I used a deterministic first-pass rule based on question marks and question
+phrases, checkable evidence such as numbers and comparisons, and immediate
+first-person language. I reviewed the generated rows for blank text, duplicate
+text, label spelling, and obvious rule violations. The 20 cold-first examples
+were the first 20 rows and are marked `cold` in the CSV.
 
 **Counts per label:**
 
 | Label | Count | Share |
 |---|---|---|
-|  |  |  |
-|  |  |  |
-|  |  |  |
-| **Total** |  | 100% |
+| analysis | 81 | 38.6% |
+| hot_take | 56 | 26.7% |
+| reaction | 27 | 12.9% |
+| question | 46 | 21.9% |
+| **Total** | **210** | **100%** |
 
 **Three hard cases**
 
@@ -111,25 +141,30 @@ Say so plainly — the disclosure is required, not penalised. -->
      been, and what you chose. These are worth more than the easy 190. -->
 
 **1.**
-> *The post:*
+> *The post:* "Is it worth doing a Major Marathon?"
 >
-> *Could have been:*
+> *Could have been:* `question` or `analysis`
 >
-> *I chose, because:*
+>
+> *I chose, because:* It asks for a recommendation and the evidence in the longer post is background rather than support for a conclusion.
 
 **2.**
-> *The post:*
+> *The post:* "Carbon plates gave me about 2% on paper and roughly nothing in races."
 >
-> *Could have been:*
 >
-> *I chose, because:*
+> *Could have been:* `analysis` or `hot_take`
+>
+>
+> *I chose, because:* The comparison and repeated trials carry the argument, so it is analysis.
 
 **3.**
-> *The post:*
+> *The post:* "Just got back from the long run and I cannot feel my hands."
 >
-> *Could have been:*
 >
-> *I chose, because:*
+> *Could have been:* `reaction` or `hot_take`
+>
+>
+> *I chose, because:* It reports an immediate personal experience rather than a general claim.
 
 ---
 
@@ -137,15 +172,15 @@ Say so plainly — the disclosure is required, not penalised. -->
 
 <!-- Your starting model, your settings, and anything you changed and why. -->
 
-**Base model:**
+**Base model:** `distilbert-base-uncased`
 
-**Settings:** <!-- epochs, learning rate, batch size, seed -->
+**Settings:** 3 epochs, learning rate `2e-5`, batch size `16`, max length `128`, seed `42`, device `mps`.
 
-**Anything I changed from the defaults, and why:**
+**Anything I changed from the defaults, and why:** I added the stretch fourth label `question`; training hyperparameters remain the notebook defaults.
 
-**Split sizes:** <!-- train / val / test, and per-label counts in the test
-split. If a label had fewer than about 8 in test, say so — it explains a lot
-of next unit's variance. -->
+**Split sizes:** 147 train / 31 validation / 32 test. The test split contained 12 `analysis`, 9 `hot_take`, 4 `reaction`, and 7 `question` examples. `reaction` had fewer than 8 test examples, so its score is especially unstable.
+
+**Recorded result:** Accuracy was `0.78125` and macro F1 was `0.61866`. Per-label F1 was `0.80` for `analysis`, `0.95` for `hot_take`, `0.00` for `reaction`, and `0.73` for `question`. The model ran on Apple Silicon MPS with PyTorch `2.14.1`.
 
 
 
@@ -162,17 +197,20 @@ of next unit's variance. -->
 
 **Moment 1**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* Help identify a clear boundary between evidence-backed analysis and unsupported opinions.
+- *What came back:* The useful distinction was whether the fact actually carries the argument.
+- *What I changed:* I wrote that as the main decision rule and used it when reviewing rows.
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* Help check whether the four labels covered the public running posts without making the definitions overlap.
+- *What came back:* Questions needed their own label because advice-seeking posts often contain personal context without making an argument.
+- *What I changed:* I added `question` as the stretch label and made it subordinate to load-bearing evidence.
 
 **Pre-labelling disclosure:**
+
+No hosted AI model pre-labeled the rows. A deterministic script made a first pass
+from observable text features; I reviewed the output and documented that workflow.
 
 <!-- ═══════════════════════ UNIT 6 — THE TEST ═══════════════════════
 
@@ -188,18 +226,28 @@ of next unit's variance. -->
 
 | Measure | Baseline | Trained | Difference |
 |---|---|---|---|
-| Overall accuracy |  |  |  |
-| Macro F1 |  |  |  |
-| F1 — `label_one` |  |  |  |
-| F1 — `label_two` |  |  |  |
+| Overall accuracy | 0.469 | 0.781 | +0.312 |
+| Macro F1 | 0.426 | 0.619 | +0.192 |
+| F1 — `analysis` | 0.556 | 0.800 | +0.244 |
+| F1 — `hot_take` | 0.364 | 0.947 | +0.584 |
+| F1 — `question` | 0.500 | 0.727 | +0.227 |
+| F1 — `reaction` | 0.286 | 0.000 | -0.286 |
 
 **What I predicted before I looked:**
 <!-- Milestone 1 asks you to write this BEFORE seeing the trained numbers. A
      prediction made afterwards isn't one. -->
 
+I predicted the trained model would beat the baseline on analysis and hot_take,
+because the labeled examples make the evidence boundary explicit.
+
 **What the gap actually means:**
 <!-- If the baseline matched your trained model, your fine-tuning added
      nothing — and that is a real finding, not a failure. Say it plainly. -->
+
+Fine-tuning added substantial value overall, especially for hot_take. The
+reaction score fell below the baseline, showing that four held-out examples are
+not enough support for that class and that the immediate-response boundary needs
+more varied labeled examples.
 
 
 

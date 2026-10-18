@@ -8,3 +8,4 @@
 analysis: makes an argument backed by a specific, checkable fact
 hot_take: a confident claim with no support offered
 reaction: an immediate response to something that just happened
+question: asks the community for advice, information, or a recommendation
