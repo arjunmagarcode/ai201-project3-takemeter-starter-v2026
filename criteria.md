@@ -53,11 +53,13 @@ whether you hit them:
 
 ## 1.
 
-<!-- Your criterion. It must name a number. -->
+Overall accuracy on the held-out test set is at least 0.65.
 
 
 
 **Why this target:**
+
+With three labels, a uniform guesser would be near 0.33. I chose 0.65 as a useful improvement that still allows mistakes on ambiguous running posts.
 
 
 
@@ -65,11 +67,13 @@ whether you hit them:
 
 ## 2.
 
-<!-- Your criterion. -->
+The held-out macro F1 is at least 0.60.
 
 
 
 **Why this target:**
+
+Macro F1 gives each label equal weight, so a model cannot meet the standard by mostly predicting the largest category.
 
 
 
@@ -77,11 +81,13 @@ whether you hit them:
 
 ## 3.
 
-<!-- Your criterion. -->
+Each label has a held-out F1 of at least 0.50.
 
 
 
 **Why this target:**
+
+The labels have different boundaries, especially analysis versus hot_take. A 0.50 floor allows for that difficult boundary while requiring every label to be usable.
 
 
 
@@ -89,11 +95,13 @@ whether you hit them:
 
 ## 4.
 
-<!-- Your criterion. -->
+No label accounts for more than 50% of the labeled dataset.
 
 
 
 **Why this target:**
+
+Keeping the largest class below half makes the model's results less likely to reflect a majority-class shortcut. I chose a stricter threshold than the assignment's 70% maximum.
 
 
 
@@ -101,11 +109,13 @@ whether you hit them:
 
 ## 5.
 
-<!-- Your criterion. -->
+At least 80% of a second pass of 30 randomly selected posts receives the same label as the first pass.
 
 
 
 **Why this target:**
+
+The most important risk is inconsistent labeling at the boundaries. An 80% repeat-agreement target is demanding enough to reveal unclear rules without requiring perfect agreement on genuinely ambiguous posts.
 
 
 
